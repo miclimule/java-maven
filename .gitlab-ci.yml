@@ -1,0 +1,66 @@
+image: maven:3.8.4-openjdk-11-slim
+
+stages:
+  - build
+  - test
+  - dockerize
+  - update
+
+cache:
+  paths:
+    - target
+
+before_script:
+  - apt-get update -qy
+  - apt-get install -y git
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  IMAGE_NAME: antonymica/free
+  IMAGE_TAG: v0.2
+
+build:
+  stage: build
+  script:
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/*.jar
+
+test:
+  stage: test
+  script:
+    - mvn test
+
+
+build_image:
+  stage: dockerize
+  image: docker:24.0.6
+  services: 
+    - docker:24.0.6-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+  script:
+    - docker build -t $IMAGE_NAME:$IMAGE_TAG .
+    - docker push $IMAGE_NAME:$IMAGE_TAG
+
+deploy:
+  stage: update
+  variables:
+    PIPELINE_USER: "Micael Tahintsoa"
+    PIPELINE_EMAIL: "mtahintsoa@gmail.com"
+  script:
+    - echo $IMAGE_TAG
+    - BUILD_NUMBER=${IMAGE_TAG}
+    - sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" spring-boot-app-manifests/deployment.yml
+    - cat spring-boot-app-manifests/deployment.yml
+    - git status 
+    - git config --global user.name $PIPELINE_USER
+    - git config --global user.email $PIPELINE_EMAIL
+    - ls 
+    - git add spring-boot-app-manifests/deployment.yml
+    - git commit -m "Update image tag"
+    - git push https://${GITLAB_USER_LOGIN}:${PERSONAL_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git HEAD:main -o ci.skip
+    - echo "It passed ..."
