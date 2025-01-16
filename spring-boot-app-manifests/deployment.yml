@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: spring-boot-app
-        image: miclimule/free:v0.2  #v0.2
+        image: miclimulu/free:v0.2  #v0.2
         ports:
         - containerPort: 8080

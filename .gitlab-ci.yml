@@ -16,7 +16,7 @@ before_script:
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
-  IMAGE_NAME: antonymica/free
+  IMAGE_NAME: miclimulu/free
   IMAGE_TAG: v0.2
 
 build:
@@ -49,8 +49,8 @@ build_image:
 deploy:
   stage: update
   variables:
-    PIPELINE_USER: "Micael Tahintsoa"
-    PIPELINE_EMAIL: "mtahintsoa@gmail.com"
+    PIPELINE_USER: "Miclimule"
+    PIPELINE_EMAIL: "miclimule@gmail.com"
   script:
     - echo $IMAGE_TAG
     - BUILD_NUMBER=${IMAGE_TAG}
